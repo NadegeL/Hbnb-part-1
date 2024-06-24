@@ -1,26 +1,33 @@
-"""
-User related functionality
-"""
+# src/models/user.py
 
-from src.models.base import Base
+# Import necessary components from SQLAlchemy and Flask
+from sqlalchemy import Column, String, Boolean, DateTime
+from src.persistence.db import db
+from datetime import datetime
+from typing import Union, List
+from src.persistence import repo
 
-
-class User(Base):
+class User(db.Model):
     """User representation"""
+    __tablename__ = 'users'  # Specify the table name
 
-    email: str
-    first_name: str
-    last_name: str
+    id = Column(String(36), primary_key=True)
+    email = Column(String(120), unique=True, nullable=False)
+    first_name = Column(String, nullable=False)
+    last_name = Column(String, nullable=False)
+    is_admin = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, onupdate=datetime.utcnow)
 
-    def __init__(self, email: str, first_name: str, last_name: str, **kw):
-        """Dummy init"""
-        super().__init__(**kw)
+    def __init__(self, email: str, first_name: str, last_name: str, **kwargs):
+        """Initialize the user"""
+        super().__init__(**kwargs)
         self.email = email
         self.first_name = first_name
         self.last_name = last_name
 
     def __repr__(self) -> str:
-        """Dummy repr"""
+        """String representation of the User"""
         return f"<User {self.id} ({self.email})>"
 
     def to_dict(self) -> dict:
@@ -31,32 +38,27 @@ class User(Base):
             "first_name": self.first_name,
             "last_name": self.last_name,
             "created_at": self.created_at.isoformat(),
-            "updated_at": self.updated_at.isoformat(),
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
         }
 
     @staticmethod
     def create(user: dict) -> "User":
         """Create a new user"""
-        from src.persistence import repo
-
-        users: list["User"] = User.get_all()
+        users: List["User"] = User.get_all()
 
         for u in users:
             if u.email == user["email"]:
                 raise ValueError("User already exists")
 
         new_user = User(**user)
-
         repo.save(new_user)
 
         return new_user
 
     @staticmethod
-    def update(user_id: str, data: dict) -> "User | None":
+    def update(user_id: str, data: dict) -> Union["User", None]:
         """Update an existing user"""
-        from src.persistence import repo
-
-        user: User | None = User.get(user_id)
+        user: Union["User", None] = User.get(user_id)
 
         if not user:
             return None
@@ -69,5 +71,8 @@ class User(Base):
             user.last_name = data["last_name"]
 
         repo.update(user)
-
         return user
+
+    @staticmethod
+    def get(user_id: str) -> Union["User", None]:
+        """Get a user by ID

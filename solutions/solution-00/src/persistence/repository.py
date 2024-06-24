@@ -1,31 +1,45 @@
-""" Repository pattern for data access layer """
+# src/persistence/repository.py
 
-from abc import ABC, abstractmethod
+# Import necessary components and modules
+from src.persistence.file import FileStorage
+from src.persistence.db import db
+from src.models.user import User
+from flask import current_app
 
+class DataManager:
+    def __init__(self):
+        self.file_storage = FileStorage('data.json')
 
-class Repository(ABC):
-    """Abstract class for repository pattern"""
+    def save_user(self, user_data):
+        """Save user data to the appropriate storage"""
+        if current_app.config['USE_DATABASE']:
+            user = User(**user_data)
+            db.session.add(user)
+            db.session.commit()
+        else:
+            self.file_storage.add_user(user_data)
 
-    @abstractmethod
-    def reload(self) -> None:
-        """Reload data to the repository"""
+    def get_user(self, user_id):
+        """Get user data from the appropriate storage"""
+        if current_app.config['USE_DATABASE']:
+            return User.query.get(user_id)
+        else:
+            return self.file_storage.get_user(user_id)
 
-    @abstractmethod
-    def get_all(self, model_name: str) -> list:
-        """Get all objects of a model"""
+    def get_all_users(self):
+        """Get all user data from the appropriate storage"""
+        if current_app.config['USE_DATABASE']:
+            return User.query.all()
+        else:
+            return self.file_storage.get_all_users()
 
-    @abstractmethod
-    def get(self, model_name: str, id: str) -> None:
-        """Get an object by id"""
-
-    @abstractmethod
-    def save(self, obj) -> None:
-        """Save an object"""
-
-    @abstractmethod
-    def update(self, obj) -> None:
-        """Update an object"""
-
-    @abstractmethod
-    def delete(self, obj) -> bool:
-        """Delete an object"""
+    def update_user(self, user_data):
+        """Update user data in the appropriate storage"""
+        if current_app.config['USE_DATABASE']:
+            user = User.query.get(user_data['id'])
+            if user:
+                for key, value in user_data.items():
+                    setattr(user, key, value)
+                db.session.commit()
+        else:
+            self.file_storage.update_user(user_data)
