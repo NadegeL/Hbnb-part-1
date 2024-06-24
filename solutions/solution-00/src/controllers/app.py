@@ -1,6 +1,7 @@
 # config.py
 
 # Import the necessary module
+from flask_jwt_extended import JWTManager
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 
@@ -27,3 +28,6 @@ def index():
 
 if __name__ == '__main__':
     app.run()
+
+app.config['JWT_SECRET_KEY'] = 'super-secret'
+jwt = JWTManager(app)
