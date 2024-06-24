@@ -1,18 +1,13 @@
 # src/config.py
+import os
 
-# Import necessary components
-from flask import Flask
-from src.persistence.db import db
+class Config:
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+    JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY')
 
-# Initialize Flask app
-app = Flask(__name__)
+class DevelopmentConfig(Config):
+    DEBUG = True
 
-# Configure the database URI
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///development.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
-# Initialize the database with the app
-db.init_app(app)
-
-# Configure whether to use database or file storage
-app.config['USE_DATABASE'] = True  # Set to False to use file storage
+class ProductionConfig(Config):
+    DEBUG = False

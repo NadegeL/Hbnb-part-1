@@ -1,33 +1,38 @@
-# config.py
-
-# Import the necessary module
-from flask_jwt_extended import JWTManager
-from flask import Flask
+from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
+from flask_bcrypt import Bcrypt
+from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
+import os
 
-# Initialize the Flask app
 app = Flask(__name__)
 env = os.environ.get('ENV', 'development')
 
 if env == 'development':
-	app.config.from_object(DevelopmentConfig)
-
+    app.config.from_object('config.DevelopmentConfig')
 else:
-    app.config.from_object(ProductionConfig)
+    app.config.from_object('config.ProductionConfig')
 
 db = SQLAlchemy(app)
+bcrypt = Bcrypt(app)
+jwt = JWTManager(app)
 
-# Ensure that the SQLite database is created if it does not exist
-if env == 'development':
-    with app.app_context():
-        db.create_all()
+from models import User
 
-@app.route('/')
-def index():
-    return "Hello, World!"
+@app.route('/login', methods=['POST'])
+def login():
+    email = request.json.get('email', None)
+    password = request.json.get('password', None)
+    user = User.query.filter_by(email=email).first()
+    if user and bcrypt.check_password_hash(user.password_hash, password):
+        access_token = create_access_token(identity=user.id)
+        return jsonify(access_token=access_token), 200
+    return 'Wrong email or password', 401
+
+@app.route('/protected', methods=['GET'])
+@jwt_required()
+def protected():
+    current_user = get_jwt_identity()
+    return jsonify(logged_in_as=current_user), 200
 
 if __name__ == '__main__':
     app.run()
-
-app.config['JWT_SECRET_KEY'] = 'super-secret'
-jwt = JWTManager(app)
