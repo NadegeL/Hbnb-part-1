@@ -1,0 +1,6 @@
+CREATE TABLE User (
+    id SERIAL PRIMARY KEY,
+    email VARCHAR(120) UNIQUE NOT NULL,
+    password_hash VARCHAR(128) NOT NULL,
+    is_admin BOOLEAN DEFAULT FALSE
+);
