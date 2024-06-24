@@ -6,14 +6,24 @@ from flask_sqlalchemy import SQLAlchemy
 
 # Initialize the Flask app
 app = Flask(__name__)
+env = os.environ.get('ENV', 'development')
 
-# Set the SQLAlchemy Database URI
-# Here we're using SQLite for development purposes
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///development.db'
+if env == 'development':
+	app.config.from_object(DevelopmentConfig)
 
-# Initialize SQLAlchemy
+else:
+    app.config.from_object(ProductionConfig)
+
 db = SQLAlchemy(app)
 
-# Set the configuration for using the database or file storage
-# This can be set as an environment variable in a production environment
-app.config['USE_DATABASE'] = True
+# Ensure that the SQLite database is created if it does not exist
+if env == 'development':
+    with app.app_context():
+        db.create_all()
+
+@app.route('/')
+def index():
+    return "Hello, World!"
+
+if __name__ == '__main__':
+    app.run()
