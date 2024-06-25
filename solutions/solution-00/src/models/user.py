@@ -3,9 +3,11 @@ User related functionality
 """
 
 from src.models.base import Base
+from src import db
 
 
-class User(Base):
+
+class User(db.Model, Base):
     """User representation"""
 
     email: str

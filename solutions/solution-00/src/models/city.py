@@ -4,9 +4,10 @@ City related functionality
 
 from src.models.base import Base
 from src.models.country import Country
+from src import db
 
 
-class City(Base):
+class City(db.Model, Base):
     """City representation"""
 
     name: str

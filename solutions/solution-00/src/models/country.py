@@ -2,8 +2,10 @@
 Country related functionality
 """
 
+from src import db
 
-class Country:
+
+class Country(db.Model):
     """
     Country representation
 

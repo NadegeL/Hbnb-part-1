@@ -5,9 +5,11 @@ Review related functionality
 from src.models.base import Base
 from src.models.place import Place
 from src.models.user import User
+from src import db
 
 
-class Review(Base):
+
+class Review(db.Model, Base):
     """Review representation"""
 
     place_id: str

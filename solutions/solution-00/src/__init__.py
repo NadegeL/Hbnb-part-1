@@ -1,9 +1,11 @@
 """ Initialize the Flask app. """
 
 from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 
 cors = CORS()
+db = SQLAlchemy()  # Instance SQLAlchemy
 
 
 def create_app(config_class="src.config.DevelopmentConfig") -> Flask:

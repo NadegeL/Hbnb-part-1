@@ -9,6 +9,17 @@ This module exports configuration classes for the Flask application.
 
 from abc import ABC
 import os
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+
+app = Flask(__name__)
+
+# Configuration de la base de données
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///development.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  # Optionnelle mais recommandée pour désactiver les modifications de suivi
+
+# Initialiser l'extension SQLAlchemy
+db = SQLAlchemy(app)
 
 
 class Config(ABC):

@@ -5,9 +5,11 @@ Place related functionality
 from src.models.base import Base
 from src.models.city import City
 from src.models.user import User
+from src import db
 
 
-class Place(Base):
+
+class Place(db.Model, Base):
     """Place representation"""
 
     name: str
