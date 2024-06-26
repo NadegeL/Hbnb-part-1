@@ -1,63 +1,32 @@
 """
 User related functionality
 """
-
+from src.models.base import Base, db_session
+from src import db
 from src.models.base import Base
 
 
 class User(Base):
-    """User representation"""
+    __tablename__ = 'users'
 
-    email: str
-    first_name: str
-    last_name: str
-
-    def __init__(self, email: str, first_name: str, last_name: str, **kw):
-        """Dummy init"""
-        super().__init__(**kw)
-        self.email = email
-        self.first_name = first_name
-        self.last_name = last_name
-
-    def __repr__(self) -> str:
-        """Dummy repr"""
-        return f"<User {self.id} ({self.email})>"
-
-    def to_dict(self) -> dict:
-        """Dictionary representation of the object"""
-        return {
-            "id": self.id,
-            "email": self.email,
-            "first_name": self.first_name,
-            "last_name": self.last_name,
-            "created_at": self.created_at.isoformat(),
-            "updated_at": self.updated_at.isoformat(),
-        }
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    first_name = db.Column(db.String(50), nullable=False)
+    last_name = db.Column(db.String(50), nullable=False)
 
     @staticmethod
-    def create(user: dict) -> "User":
-        """Create a new user"""
-        from src.persistence import repo
+    def create(data):
+        if User.query.filter_by(email=data["email"]).first():
+            raise ValueError("User already exists")
 
-        users: list["User"] = User.get_all()
-
-        for u in users:
-            if u.email == user["email"]:
-                raise ValueError("User already exists")
-
-        new_user = User(**user)
-
-        repo.save(new_user)
+        new_user = User(**data)
+        db.session.add(new_user)
+        db.session.commit()
 
         return new_user
 
     @staticmethod
-    def update(user_id: str, data: dict) -> "User | None":
-        """Update an existing user"""
-        from src.persistence import repo
-
-        user: User | None = User.get(user_id)
-
+    def update(entity_id, data):
+        user = User.query.get(entity_id)
         if not user:
             return None
 
@@ -68,6 +37,5 @@ class User(Base):
         if "last_name" in data:
             user.last_name = data["last_name"]
 
-        repo.update(user)
-
+        db.session.commit()
         return user

@@ -2,22 +2,26 @@
 Amenity related functionality
 """
 
-from src.models.base import Base
+from sqlalchemy import Column, String, ForeignKey
+from sqlalchemy.orm import relationship
+from src.models.base import Base, db_session
+from src import db
+
 
 
 class Amenity(Base):
     """Amenity representation"""
 
-    name: str
+    __tablename__ = "amenities"
+    name = Column(String(120), nullable=False)
 
-    def __init__(self, name: str, **kw) -> None:
-        """Dummy init"""
-        super().__init__(**kw)
-
+    def __init__(self, name: str, **kwargs):
+        """Init method"""
+        super().__init__(**kwargs)
         self.name = name
 
     def __repr__(self) -> str:
-        """Dummy repr"""
+        """Representation of the object"""
         return f"<Amenity {self.id} ({self.name})>"
 
     def to_dict(self) -> dict:
@@ -35,9 +39,7 @@ class Amenity(Base):
         from src.persistence import repo
 
         amenity = Amenity(**data)
-
         repo.save(amenity)
-
         return amenity
 
     @staticmethod
@@ -45,7 +47,7 @@ class Amenity(Base):
         """Update an existing amenity"""
         from src.persistence import repo
 
-        amenity: Amenity | None = Amenity.get(amenity_id)
+        amenity: Amenity | None = repo.get('Amenity', amenity_id)
 
         if not amenity:
             return None
@@ -54,31 +56,32 @@ class Amenity(Base):
             amenity.name = data["name"]
 
         repo.update(amenity)
-
         return amenity
 
 
 class PlaceAmenity(Base):
     """PlaceAmenity representation"""
 
-    place_id: str
-    amenity_id: str
+    __tablename__ = "place_amenities"
+    place_id = Column(String, ForeignKey('places.id'), primary_key=True)
+    amenity_id = Column(String, ForeignKey('amenities.id'), primary_key=True)
 
-    def __init__(self, place_id: str, amenity_id: str, **kw) -> None:
-        """Dummy init"""
-        super().__init__(**kw)
+    place = relationship("Place", back_populates="place_amenities")
+    amenity = relationship("Amenity", back_populates="place_amenities")
 
+    def __init__(self, place_id: str, amenity_id: str, **kwargs):
+        """Init method"""
+        super().__init__(**kwargs)
         self.place_id = place_id
         self.amenity_id = amenity_id
 
     def __repr__(self) -> str:
-        """Dummy repr"""
+        """Representation of the object"""
         return f"<PlaceAmenity ({self.place_id} - {self.amenity_id})>"
 
     def to_dict(self) -> dict:
         """Dictionary representation of the object"""
         return {
-            "id": self.id,
             "place_id": self.place_id,
             "amenity_id": self.amenity_id,
             "created_at": self.created_at.isoformat(),
@@ -90,16 +93,7 @@ class PlaceAmenity(Base):
         """Get a PlaceAmenity object by place_id and amenity_id"""
         from src.persistence import repo
 
-        place_amenities: list[PlaceAmenity] = repo.get_all("placeamenity")
-
-        for place_amenity in place_amenities:
-            if (
-                place_amenity.place_id == place_id
-                and place_amenity.amenity_id == amenity_id
-            ):
-                return place_amenity
-
-        return None
+        return repo.get("PlaceAmenity", (place_id, amenity_id))
 
     @staticmethod
     def create(data: dict) -> "PlaceAmenity":
@@ -107,9 +101,7 @@ class PlaceAmenity(Base):
         from src.persistence import repo
 
         new_place_amenity = PlaceAmenity(**data)
-
         repo.save(new_place_amenity)
-
         return new_place_amenity
 
     @staticmethod
@@ -123,7 +115,6 @@ class PlaceAmenity(Base):
             return False
 
         repo.delete(place_amenity)
-
         return True
 
     @staticmethod
