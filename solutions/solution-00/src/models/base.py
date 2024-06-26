@@ -2,18 +2,21 @@
 
 from datetime import datetime
 from typing import Any, Optional
-import uuid
+from uuid import uuid4
 from abc import ABC, abstractmethod
+from src import db
 
 
-class Base(ABC):
+class Base(db.Model, ABC):
     """
     Base Interface for all models
     """
+    __abstract__ = True # This ensures SQLAlchemy knows this is an abstract class
 
-    id: str
-    created_at: datetime
-    updated_at: datetime
+    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid4()))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
 
     def __init__(
         self,
@@ -33,7 +36,7 @@ class Base(ABC):
                     continue
                 setattr(self, key, value)
 
-        self.id = str(id or uuid.uuid4())
+        self.id = str(id or uuid4())
         self.created_at = created_at or datetime.now()
         self.updated_at = updated_at or datetime.now()
 

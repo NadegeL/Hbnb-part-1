@@ -9,9 +9,12 @@ from src import db
 
 class City(db.Model, Base):
     """City representation"""
+    __tablename__ = 'cities'
 
-    name: str
-    country_code: str
+    name = db.Column(db.String(255), nullable=False)
+    country_code = db.Column(db.Integer, nullable=False)
+    places = db.relationship('Place', back_populates='city')
+
 
     def __init__(self, name: str, country_code: str, **kw) -> None:
         """Dummy init"""

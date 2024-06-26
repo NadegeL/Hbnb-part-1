@@ -8,8 +8,10 @@ from src import db
 
 class Amenity(db.model, Base):
     """Amenity representation"""
+    __tablename__ = 'amenities'
 
-    name: str
+    name = db.Column(db.String(255), nullable=False)
+
 
     def __init__(self, name: str, **kw) -> None:
         """Dummy init"""

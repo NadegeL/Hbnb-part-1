@@ -6,13 +6,15 @@ from src.models.base import Base
 from src import db
 
 
-
 class User(db.Model, Base):
     """User representation"""
+    __tablename__ = 'users'
 
-    email: str
-    first_name: str
-    last_name: str
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    first_name = db.Column(db.String(80), nullable=False)
+    last_name = db.Column(db.String(80), nullable=False)
+    places = db.relationship('Place', back_populates='host')
+
 
     def __init__(self, email: str, first_name: str, last_name: str, **kw):
         """Dummy init"""
