@@ -3,6 +3,8 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
+from dotenv import load_dotenv
+import os
 
 cors = CORS()
 db = SQLAlchemy()  # Instance SQLAlchemy
@@ -15,6 +17,12 @@ def create_app(config_class="src.config.DevelopmentConfig") -> Flask:
     """
     app = Flask(__name__)
     app.url_map.strict_slashes = False
+
+    # Load environment variables from .env file
+    load_dotenv()
+
+    # Configure app based on environment variable
+    app.config['USE_DATABASE'] = os.getenv('USE_DATABASE') == 'True'
 
     app.config.from_object(config_class)
 
