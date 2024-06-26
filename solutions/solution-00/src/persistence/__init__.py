@@ -2,9 +2,16 @@
 to be used based on the environment variable REPOSITORY_ENV_VAR."""
 
 import os
-
+from dotenv import load_dotenv
 from src.persistence.repository import Repository
 from utils.constants import REPOSITORY_ENV_VAR
+
+# Load environment variables from .env file
+load_dotenv()
+
+# Determine if we should use the database
+USE_DATABASE = os.getenv('USE_DATABASE') == 'True'
+
 
 repo: Repository
 
