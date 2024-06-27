@@ -3,12 +3,15 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
+import os
+from dotenv import load_dotenv
+from sqlalchemy_utils import database_exists, create_database
+import sqlalchemy
 
 cors = CORS()
 db = SQLAlchemy()  # Instance SQLAlchemy
 
-
-def create_app(config_class="src.config.DevelopmentConfig") -> Flask:
+def create_app():
     """
     Create a Flask app with the given configuration class.
     The default configuration class is DevelopmentConfig.
@@ -16,7 +19,31 @@ def create_app(config_class="src.config.DevelopmentConfig") -> Flask:
     app = Flask(__name__)
     app.url_map.strict_slashes = False
 
-    app.config.from_object(config_class)
+    # Load environment variables from .env file
+    load_dotenv()
+
+    # Determine the configuration to use
+    env = os.getenv('FLASK_ENV', 'development')
+    if env == 'development':
+        app.config.from_object('config.DevelopmentConfig')
+    elif env == 'testing':
+        app.config.from_object('config.TestingConfig')
+    else:
+        app.config.from_object('config.ProductionConfig')
+
+    # Initialize SQLAlchemy with the app
+    db.init_app(app)
+
+    # Check if the SQLite database exists and create it if not
+    if env == 'development':
+        with app.app_context():
+            db_url = app.config['SQLALCHEMY_DATABASE_URI']
+            if db_url.startswith('sqlite'):
+                # Vérifier si la base de données SQLite existe
+                if not database_exists(db_url):
+                    engine = sqlalchemy.create_engine(db_url)
+                    create_database(engine)
+                    print(f"Database created at {db_url}")
 
     register_extensions(app)
     register_routes(app)
@@ -24,12 +51,11 @@ def create_app(config_class="src.config.DevelopmentConfig") -> Flask:
 
     return app
 
-
 def register_extensions(app: Flask) -> None:
     """Register the extensions for the Flask app"""
     cors.init_app(app, resources={r"/api/*": {"origins": "*"}})
+    # db.init_app(app)  # Initialize SQLAlchemy with the app (remove if already initialized)
     # Further extensions can be added here
-
 
 def register_routes(app: Flask) -> None:
     """Import and register the routes for the Flask app"""
@@ -50,13 +76,11 @@ def register_routes(app: Flask) -> None:
     app.register_blueprint(reviews_bp)
     app.register_blueprint(amenities_bp)
 
-
 def register_handlers(app: Flask) -> None:
     """Register the error handlers for the Flask app."""
     app.errorhandler(404)(lambda e: (
         {"error": "Not found", "message": str(e)}, 404
-    )
-    )
+    ))
     app.errorhandler(400)(
         lambda e: (
             {"error": "Bad request", "message": str(e)}, 400
