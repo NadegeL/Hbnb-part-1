@@ -3,9 +3,11 @@
 from flask import Flask
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate  # Importer Flask-Migrate
 
 cors = CORS()
 db = SQLAlchemy()
+migrate = Migrate()  # Initialiser Migrate
 
 
 def create_app(config_class="src.config.DevelopmentConfig") -> Flask:
@@ -34,6 +36,7 @@ def register_extensions(app: Flask) -> None:
     """Register the extensions for the Flask app"""
     cors.init_app(app, resources={r"/api/*": {"origins": "*"}})
     db.init_app(app)  # Initialize SQLAlchemy
+    migrate.init_app(app, db)  # Initialiser Flask-Migrate avec l'application et la base de données
     # Further extensions can be added here
 
 

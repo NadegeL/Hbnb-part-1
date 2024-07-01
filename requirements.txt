@@ -4,3 +4,4 @@ gunicorn
 SQLAlchemy
 Flask-SQLAlchemy
 Flask-Migrate
+flask_bcrypt
