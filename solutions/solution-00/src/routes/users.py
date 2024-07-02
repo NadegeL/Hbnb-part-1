@@ -1,15 +1,10 @@
 """
 This module contains the routes for the users endpoints.
 """
-
 from flask import Blueprint
-from src.controllers.users import (
-    create_user,
-    delete_user,
-    get_user_by_id,
-    get_users,
-    update_user,
-)
+from src.controllers.users import get_users, create_user, get_user_by_id, update_user, delete_user
+
+users_bp = Blueprint('users', __name__)
 
 users_bp = Blueprint("users", __name__, url_prefix="/users")
 

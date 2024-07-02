@@ -7,26 +7,14 @@ from datetime import datetime
 from src.models.base import Base
 from src.persistence.repository import Repository
 from utils.populate import populate_db
+from src.models import db, city, country
 
+class MemoryRepository:
+    def __init__(self):
+        self.reload()
 
-class MemoryRepository(Repository):
-    """
-    A Repository that does not persist data, it only stores it in memory
-
-
-
-    Every time the server is restarted, the data is lost
-    """
-
-    __data: dict[str, list] = {
-        "country": [],
-        "user": [],
-        "amenity": [],
-        "city": [],
-        "review": [],
-        "place": [],
-        "placeamenity": [],
-    }
+    def reload(self):
+        populate_db(self)
 
     def __init__(self) -> None:
         """Calls reload method"""

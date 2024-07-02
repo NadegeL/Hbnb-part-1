@@ -1,9 +1,15 @@
 """ Entry point for the application. """
 
+from flask import Flask
 from flask.cli import FlaskGroup
+from flask_jwt_extended import JWTManager
 from src import create_app, db
 
 cli = FlaskGroup(create_app=create_app)
+app = Flask(__name__)
+app.config["JWT_SECRET_KEY"] = "votre-secret-key"
+
+jwt = JWTManager(app)
 
 @cli.command("reset_db")
 def reset_db():

@@ -1,24 +1,25 @@
 """
 Amenity related functionality
 """
-
-from sqlalchemy import Column, String, ForeignKey
+import uuid
+from datetime import datetime
+from sqlalchemy import Column, String, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
-from src.models.base import Base, db_session
+from src.persistence.db import db
 from src import db
 
 
 
-class Amenity(Base):
+class Amenity(db.Model):
     """Amenity representation"""
 
     __tablename__ = "amenities"
+    id = Column(String(60), primary_key=True, default=lambda: str(uuid.uuid4()))
     name = Column(String(120), nullable=False)
-
-    def __init__(self, name: str, **kwargs):
-        """Init method"""
-        super().__init__(**kwargs)
-        self.name = name
+    created_at = Column(DateTime, default=db.func.current_timestamp(), nullable=False)
+    updated_at = Column(DateTime, default=db.func.current_timestamp(), nullable=False)
+    
+    places = relationship("Place", secondary="place_amenities", back_populates="amenities")
 
     def __repr__(self) -> str:
         """Representation of the object"""
@@ -59,7 +60,7 @@ class Amenity(Base):
         return amenity
 
 
-class PlaceAmenity(Base):
+class PlaceAmenity(db.Model):
     """PlaceAmenity representation"""
 
     __tablename__ = "place_amenities"
@@ -69,57 +70,6 @@ class PlaceAmenity(Base):
     place = relationship("Place", back_populates="place_amenities")
     amenity = relationship("Amenity", back_populates="place_amenities")
 
-    def __init__(self, place_id: str, amenity_id: str, **kwargs):
-        """Init method"""
-        super().__init__(**kwargs)
-        self.place_id = place_id
-        self.amenity_id = amenity_id
-
     def __repr__(self) -> str:
         """Representation of the object"""
-        return f"<PlaceAmenity ({self.place_id} - {self.amenity_id})>"
-
-    def to_dict(self) -> dict:
-        """Dictionary representation of the object"""
-        return {
-            "place_id": self.place_id,
-            "amenity_id": self.amenity_id,
-            "created_at": self.created_at.isoformat(),
-            "updated_at": self.updated_at.isoformat(),
-        }
-
-    @staticmethod
-    def get(place_id: str, amenity_id: str) -> "PlaceAmenity | None":
-        """Get a PlaceAmenity object by place_id and amenity_id"""
-        from src.persistence import repo
-
-        return repo.get("PlaceAmenity", (place_id, amenity_id))
-
-    @staticmethod
-    def create(data: dict) -> "PlaceAmenity":
-        """Create a new PlaceAmenity object"""
-        from src.persistence import repo
-
-        new_place_amenity = PlaceAmenity(**data)
-        repo.save(new_place_amenity)
-        return new_place_amenity
-
-    @staticmethod
-    def delete(place_id: str, amenity_id: str) -> bool:
-        """Delete a PlaceAmenity object by place_id and amenity_id"""
-        from src.persistence import repo
-
-        place_amenity = PlaceAmenity.get(place_id, amenity_id)
-
-        if not place_amenity:
-            return False
-
-        repo.delete(place_amenity)
-        return True
-
-    @staticmethod
-    def update(entity_id: str, data: dict):
-        """Not implemented, isn't needed"""
-        raise NotImplementedError(
-            "This method is defined only because of the Base class"
-        )
+        return f"<PlaceAmenity {self.place_id} - {self.amenity_id}>"
