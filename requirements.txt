@@ -5,3 +5,6 @@ SQLAlchemy
 Flask-SQLAlchemy
 Flask-Migrate
 flask_bcrypt
+
+Flask-JWT-Extended
+Flask-Bcrypt

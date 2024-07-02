@@ -4,10 +4,14 @@ from flask import Flask
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate  # Importer Flask-Migrate
+from flask_jwt_extended import JWTManager
+from flask_bcrypt import Bcrypt
 
 cors = CORS()
 db = SQLAlchemy()
 migrate = Migrate()  # Initialiser Migrate
+jwt = JWTManager()   # Initialize JWTManager
+bcrypt = Bcrypt()    # Initialize Bcrypt
 
 
 def create_app(config_class="src.config.DevelopmentConfig") -> Flask:
@@ -19,6 +23,8 @@ def create_app(config_class="src.config.DevelopmentConfig") -> Flask:
     app.url_map.strict_slashes = False
 
     app.config.from_object(config_class)
+    app.config['JWT_SECRET_KEY'] = 'super-strong-secret-key'  # a strong secret key
+
 
     register_extensions(app)
     register_routes(app)
