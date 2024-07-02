@@ -2,8 +2,12 @@
 
 from flask import Flask
 from flask_cors import CORS
+from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate  # Importer Flask-Migrate
 
 cors = CORS()
+db = SQLAlchemy()
+migrate = Migrate()  # Initialiser Migrate
 
 
 def create_app(config_class="src.config.DevelopmentConfig") -> Flask:
@@ -20,12 +24,19 @@ def create_app(config_class="src.config.DevelopmentConfig") -> Flask:
     register_routes(app)
     register_handlers(app)
 
+    with app.app_context():
+        # Crée toutes les tables SQLAlchemy si elles n'existent pas
+        db.create_all()
+        print("Base de données vérifiée/créée avec succès!")
+
     return app
 
 
 def register_extensions(app: Flask) -> None:
     """Register the extensions for the Flask app"""
     cors.init_app(app, resources={r"/api/*": {"origins": "*"}})
+    db.init_app(app)  # Initialize SQLAlchemy
+    migrate.init_app(app, db)  # Initialiser Flask-Migrate avec l'application et la base de données
     # Further extensions can be added here
 
 
@@ -53,10 +64,7 @@ def register_handlers(app: Flask) -> None:
     """Register the error handlers for the Flask app."""
     app.errorhandler(404)(lambda e: (
         {"error": "Not found", "message": str(e)}, 404
-    )
-    )
-    app.errorhandler(400)(
-        lambda e: (
-            {"error": "Bad request", "message": str(e)}, 400
-        )
-    )
+    ))
+    app.errorhandler(400)(lambda e: (
+        {"error": "Bad request", "message": str(e)}, 400
+    ))
