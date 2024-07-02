@@ -1,29 +1,63 @@
-import os
-import unittest
-from app import app, db
+# tests/test_database.py
 
-class DatabaseTestCase(unittest.TestCase):
-    def setUp(self):
-        self.app = app
-        self.client = self.app.test_client()
-        self.app.config['TESTING'] = True
+import pytest
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from models import User, Place  # Assuming these are your SQLAlchemy models
 
-    def test_sqlite_connection(self):
-        os.environ['DATABASE_TYPE'] = 'sqlite'
-        os.environ['DATABASE_URL'] = 'sqlite:///test.db'
-        with self.app.app_context():
-            db.create_all()
-            self.assertTrue(os.path.exists('test.db'))
-            db.drop_all()
-            os.remove('test.db')
 
-    def test_postgresql_connection(self):
-        os.environ['DATABASE_TYPE'] = 'postgresql'
-        os.environ['DATABASE_URL'] = 'postgresql://user:password@localhost/test_db'
-        with self.app.app_context():
-            db.create_all()
-            # Assuming connection to PostgreSQL is successful
-            self.assertTrue(True)
+@pytest.fixture(scope="module")
+def setup_test():
+    # Set up an in-memory SQLite database
+    engine = create_engine("sqlite:///:memory:")
 
-if __name__ == '__main__':
-    unittest.main()
+    # Create all tables
+    Base.metadata.create_all(bind=engine)
+
+    # Create a session
+    Session = sessionmaker(bind=engine)
+    session = Session()
+
+    # Example data seeding
+    user = User(username="test_user", email="test@example.com")
+    place = Place(name="Test Place", description="Testing Place")
+    session.add(user)
+    session.add(place)
+    session.commit()
+
+    yield session  # Provide the session object to the tests
+
+    # Teardown: clean up the session and drop all tables
+    session.rollback()
+    session.close()
+    Base.metadata.drop_all(bind=engine)
+
+
+def test_user_creation(setup_test):
+    """
+    Test user creation and retrieval from the database
+    """
+    session = setup_test
+
+    # Query for the user
+    user = session.query(User).filter_by(username="test_user").first()
+
+    # Assert that the user exists
+    assert user is not None, "User should be created and retrievable"
+
+
+def test_place_creation(setup_test):
+    """
+    Test place creation and retrieval from the database
+    """
+    session = setup_test
+
+    # Query for the place
+    place = session.query(Place).filter_by(name="Test Place").first()
+
+    # Assert that the place exists
+    assert place is not None, "Place should be created and retrievable"
+
+
+if __name__ == "__main__":
+    pytest.main()

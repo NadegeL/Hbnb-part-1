@@ -1,3 +1,7 @@
+# tests/test_amenities.py
+
+# tests/test_amenities.py
+
 """ Implement the Amenity Management Endpoints """
 
 import requests
@@ -121,12 +125,10 @@ def test_delete_amenity():
 
 if __name__ == "__main__":
     # Run the tests
-    test_functions(
-        [
-            test_get_amenities,
-            test_post_amenity,
-            test_get_amenity,
-            test_put_amenity,
-            test_delete_amenity,
-        ]
-    )
+    test_functions.run_tests([
+        test_get_amenities,
+        test_post_amenity,
+        test_get_amenity,
+        test_put_amenity,
+        test_delete_amenity,
+    ])
