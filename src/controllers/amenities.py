@@ -1,21 +1,13 @@
-# src/controllers/amenities.py
-
-"""
-Amenity controller module
-"""
-
 from flask import Blueprint, abort, request
 from src.models.amenity import Amenity
 
-# Define the blueprint for amenities
 amenities_bp = Blueprint('amenities', __name__)
 
 @amenities_bp.route('/amenities', methods=['GET'])
 def get_amenities():
     """Returns all amenities"""
-    amenities: list[Amenity] = Amenity.get_all()
+    amenities = Amenity.get_all()
     return [amenity.to_dict() for amenity in amenities]
-
 
 @amenities_bp.route('/amenities', methods=['POST'])
 def create_amenity():
@@ -29,29 +21,26 @@ def create_amenity():
         abort(400, str(e))
     return amenity.to_dict(), 201
 
-
 @amenities_bp.route('/amenities/<amenity_id>', methods=['GET'])
 def get_amenity_by_id(amenity_id: str):
     """Returns an amenity by ID"""
-    amenity: Amenity | None = Amenity.get(amenity_id)
+    amenity = Amenity.get(amenity_id)
     if not amenity:
         abort(404, f"Amenity with ID {amenity_id} not found")
     return amenity.to_dict()
-
 
 @amenities_bp.route('/amenities/<amenity_id>', methods=['PUT'])
 def update_amenity(amenity_id: str):
     """Updates an amenity by ID"""
     data = request.get_json()
-    updated_amenity: Amenity | None = Amenity.update(amenity_id, data)
+    updated_amenity = Amenity.update(amenity_id, data)
     if not updated_amenity:
         abort(404, f"Amenity with ID {amenity_id} not found")
     return updated_amenity.to_dict()
-
 
 @amenities_bp.route('/amenities/<amenity_id>', methods=['DELETE'])
 def delete_amenity(amenity_id: str):
     """Deletes an amenity by ID"""
     if not Amenity.delete(amenity_id):
         abort(404, f"Amenity with ID {amenity_id} not found")
-    return "", 204
+    return '', 204

@@ -1,16 +1,27 @@
 # src/config.py
+import os
+from dotenv import load_dotenv
 
-class DevelopmentConfig:
+import os
+from dotenv import load_dotenv
+
+basedir = os.path.abspath(os.path.dirname(__file__))
+load_dotenv(os.path.join(basedir, '.env'))
+
+class Config(object):
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
+                              'sqlite:///' + os.path.join(basedir, 'app.db')
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+    JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY', 'your_jwt_secret_key')
+
+class DevelopmentConfig(Config):
     DEBUG = True
-    SQLALCHEMY_DATABASE_URI = 'sqlite:///development.db'  # Example DB URI
-    SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-class ProductionConfig:
+class ProductionConfig(Config):
     DEBUG = False
-    SQLALCHEMY_DATABASE_URI = 'sqlite:///production.db'  # Example DB URI
-    SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-app_config = {
+config = {
     'development': DevelopmentConfig,
     'production': ProductionConfig,
+    'default': DevelopmentConfig  # Default configuration
 }

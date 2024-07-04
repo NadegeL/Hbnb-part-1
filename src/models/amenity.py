@@ -4,7 +4,6 @@ from sqlalchemy import Column, String, Boolean, DateTime
 from datetime import datetime
 from typing import Union, List  # Import Union and List
 from src.persistence.db import db
-from src.persistence import repo
 
 class Amenity(db.Model):
     """Amenity representation"""
@@ -12,13 +11,15 @@ class Amenity(db.Model):
 
     id = Column(String(36), primary_key=True)
     name = Column(String(120), unique=True, nullable=False)
+    description = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, onupdate=datetime.utcnow)
 
-    def __init__(self, name: str, **kwargs):
+    def __init__(self, name: str, description: str = "", **kwargs):
         """Initialize the amenity"""
         super().__init__(**kwargs)
         self.name = name
+        self.description = description
 
     def __repr__(self) -> str:
         """String representation of the Amenity"""
@@ -29,6 +30,7 @@ class Amenity(db.Model):
         return {
             "id": self.id,
             "name": self.name,
+            "description": self.description,
             "created_at": self.created_at.isoformat(),
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
         }
@@ -39,12 +41,11 @@ class Amenity(db.Model):
         amenities: List["Amenity"] = Amenity.get_all()
 
         for a in amenities:
-            if a.name == amenity["name"]:
+            if a.name == data["name"]:
                 raise ValueError("Amenity already exists")
 
-        new_amenity = Amenity(**amenity)
+        new_amenity = Amenity(**data)
         repo.save(new_amenity)
-
         return new_amenity
 
     @staticmethod
@@ -57,27 +58,22 @@ class Amenity(db.Model):
 
         if "name" in data:
             amenity.name = data["name"]
+        if "description" in data:
+            amenity.description = data["description"]
 
         repo.update(amenity)
         return amenity
 
     @staticmethod
-    def get(amenity_id: str) -> Union["Amenity", None]:
-        """Get an amenity by ID"""
-        return repo.get(amenity_id, Amenity)
+    def get_all() -> List["Amenity"]:
+        from src.persistence import repo
+        return repo.get_all("amenity")
 
     @staticmethod
     def delete(amenity_id: str) -> bool:
-        """Delete an amenity by ID"""
-        amenity: Union["Amenity", None] = Amenity.get(amenity_id)
-
-        if not amenity:
-            return False
-
-        repo.delete(amenity)
-        return True
-
-    @staticmethod
-    def get_all() -> list["Amenity"]:
-        """Get all amenities"""
-        return repo.get_all(Amenity)
+        from src.persistence import repo
+        amenity = Amenity.get(amenity_id)
+        if amenity:
+            repo.delete(amenity)
+            return True
+        return False

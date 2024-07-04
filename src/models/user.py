@@ -1,29 +1,29 @@
-# src/models/user.py
-
-# Import necessary components from SQLAlchemy and Flask
-from sqlalchemy import Column, String, Boolean, DateTime
+#src/models/users.py
+from sqlalchemy import Column, String, Boolean, DateTime, func
 from datetime import datetime
-from typing import Union, List
 from src.persistence.db import db
+from flask_bcrypt import generate_password_hash, check_password_hash
 
 class User(db.Model):
     """User representation"""
-    __tablename__ = 'users'  # Specify the table name
+    __tablename__ = 'users'
 
-    id = Column(String(36), primary_key=True)
-    email = Column(String(120), unique=True, nullable=False)
-    first_name = Column(String, nullable=False)
-    last_name = Column(String, nullable=False)
-    is_admin = Column(Boolean, default=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, onupdate=datetime.utcnow)
+    id = db.Column(String(36), primary_key=True)
+    email = db.Column(String(120), unique=True, nullable=False)
+    password_hash = db.Column(String(128), nullable=False)
+    first_name = db.Column(String, nullable=False)
+    last_name = db.Column(String, nullable=False)
+    is_admin = db.Column(Boolean, default=False)
+    created_at = db.Column(DateTime, default=func.current_timestamp())
+    updated_at = db.Column(DateTime, onupdate=func.current_timestamp())
 
-    def __init__(self, email: str, first_name: str, last_name: str, **kwargs):
+    def __init__(self, email: str, first_name: str, last_name: str, password: str, **kwargs):
         """Initialize the user"""
         super().__init__(**kwargs)
         self.email = email
         self.first_name = first_name
         self.last_name = last_name
+        self.password_hash = generate_password_hash(password).decode('utf8')
 
     def __repr__(self) -> str:
         """String representation of the User"""
@@ -43,24 +43,15 @@ class User(db.Model):
     @staticmethod
     def create(user: dict) -> "User":
         """Create a new user"""
-        from src.persistence import repo  # Import repo here to avoid circular import
-        users: List["User"] = User.get_all()
-
-        for u in users:
-            if u.email == user["email"]:
-                raise ValueError("User already exists")
-
         new_user = User(**user)
-        repo.save(new_user)
-
+        db.session.add(new_user)
+        db.session.commit()
         return new_user
 
     @staticmethod
-    def update(user_id: str, data: dict) -> Union["User", None]:
+    def update(user_id: str, data: dict) -> "User":
         """Update an existing user"""
-        from src.persistence import repo  # Import repo here to avoid circular import
-        user: Union["User", None] = User.get(user_id)
-
+        user = User.query.get(user_id)
         if not user:
             return None
 
@@ -70,18 +61,18 @@ class User(db.Model):
             user.first_name = data["first_name"]
         if "last_name" in data:
             user.last_name = data["last_name"]
+        if "password" in data:
+            user.password_hash = generate_password_hash(data["password"]).decode('utf8')
 
-        repo.update(user)
+        db.session.commit()
         return user
 
     @staticmethod
-    def get(user_id: str) -> Union["User", None]:
+    def get(user_id: str) -> "User":
         """Get a user by ID"""
-        from src.persistence import repo  # Import repo here to avoid circular import
-        return repo.get("user", user_id)
+        return User.query.get(user_id)
 
     @staticmethod
-    def get_all() -> List["User"]:
+    def get_all() -> list["User"]:
         """Get all users"""
-        from src.persistence import repo  # Import repo here to avoid circular import
-        return repo.get_all("user")
+        return User.query.all()

@@ -1,8 +1,11 @@
 # src/__init__.py
-from flask import Flask
-from src.config import app_config  # Assuming app_config is defined in config.py
+#from src.config import app_config  # Assuming app_config is defined in config.py
 from src.persistence.db import db  # Assuming db is defined in persistence/db.py
 from src.routes.users import users_bp  # Assuming users_bp is defined in routes/users.py
+from flask import Flask
+import os
+from dotenv import load_dotenv
+
 
 def create_app(config_name):
     app = Flask(__name__)

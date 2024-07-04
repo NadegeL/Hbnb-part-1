@@ -1,7 +1,11 @@
-flask
-flask-cors
+Flask>=2.0.0
+Flask-SQLAlchemy>=2.5.0
+Flask-Bcrypt
+Flask-JWT-Extended
+Flask-Migrate
+python-dotenv
+werkzeug==2.0.3
+flask-migrate
+install pytest Flask-Testing
+install pytest sqlalchemy pytest-mock
 
-gunicorn
-
-SQLAlchemy==1.4.36
-Flask-SQLAlchemy==2.5.1
