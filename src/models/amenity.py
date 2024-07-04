@@ -2,10 +2,10 @@
 Amenity related functionality
 """
 
-from sqlalchemy import Column, String, ForeignKey
-from sqlalchemy.orm import relationship
-from src.models.base import Base, db_session
+from src.models.base import Base
 from src import db
+from sqlalchemy import ForeignKey
+from sqlalchemy.orm import relationship
 
 
 
@@ -13,12 +13,7 @@ class Amenity(Base):
     """Amenity representation"""
 
     __tablename__ = "amenities"
-    name = Column(String(120), nullable=False)
-
-    def __init__(self, name: str, **kwargs):
-        """Init method"""
-        super().__init__(**kwargs)
-        self.name = name
+    name = db.Column(db.String(120), nullable=False)
 
     def __repr__(self) -> str:
         """Representation of the object"""
@@ -63,8 +58,8 @@ class PlaceAmenity(Base):
     """PlaceAmenity representation"""
 
     __tablename__ = "place_amenities"
-    place_id = Column(String, ForeignKey('places.id'), primary_key=True)
-    amenity_id = Column(String, ForeignKey('amenities.id'), primary_key=True)
+    place_id = db.Column(db.String, ForeignKey('places.id'), primary_key=True)
+    amenity_id = db.Column(db.String, ForeignKey('amenities.id'), primary_key=True)
 
     place = relationship("Place", back_populates="place_amenities")
     amenity = relationship("Amenity", back_populates="place_amenities")

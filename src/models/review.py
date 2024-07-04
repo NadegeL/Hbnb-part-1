@@ -1,21 +1,25 @@
 """
 Review related functionality
 """
-from src.models.base import Base, db_session
 from src import db
+from sqlalchemy.orm import relationship
 from src.models.base import Base
 from src.models.place import Place
 from src.models.user import User
-
+import uuid
 
 class Review(Base):
     """Review representation"""
 
     __tablename__ = "reviews"
+    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     place_id = db.Column(db.String(36), db.ForeignKey("places.id"), nullable=False)
     user_id = db.Column(db.String(36), db.ForeignKey("users.id"), nullable=False)
     comment = db.Column(db.String(500), nullable=False)
     rating = db.Column(db.Float, nullable=False)
+
+    place = relationship("Place", back_populates="reviews")
+    user = relationship("User", back_populates="reviews")
 
     def __init__(self, place_id: str, user_id: str, comment: str, rating: float, **kwargs) -> None:
         """Init method"""
@@ -42,38 +46,52 @@ class Review(Base):
         }
 
     @staticmethod
+    def get_all() -> list["Review"]:
+        """Get all reviews"""
+        return Review.query.all()
+
+    @staticmethod
+    def get(review_id: str) -> "Review | None":
+        """Get a review by its id"""
+        return Review.query.get(review_id)
+
+    @staticmethod
     def create(data: dict) -> "Review":
         """Create a new review"""
-        from src.persistence import repo
-
-        user: User | None = User.get(data["user_id"])
-
+        user = User.query.get(data["user_id"])
         if not user:
             raise ValueError(f"User with ID {data['user_id']} not found")
 
-        place: Place | None = Place.get(data["place_id"])
-
+        place = Place.query.get(data["place_id"])
         if not place:
             raise ValueError(f"Place with ID {data['place_id']} not found")
 
         new_review = Review(**data)
-        repo.save(new_review)
+        db.session.add(new_review)
+        db.session.commit()
 
         return new_review
 
     @staticmethod
     def update(review_id: str, data: dict) -> "Review | None":
         """Update an existing review"""
-        from src.persistence import repo
-
-        review = Review.get(review_id)
-
+        review = Review.query.get(review_id)
         if not review:
-            raise ValueError("Review not found")
+            return None
 
         for key, value in data.items():
             setattr(review, key, value)
 
-        repo.update(review)
-
+        db.session.commit()
         return review
+
+    @staticmethod
+    def delete(review_id: str) -> bool:
+        """Delete a review by its id"""
+        review = Review.get(review_id)
+        if not review:
+            return False
+
+        db.session.delete(review)
+        db.session.commit()
+        return True

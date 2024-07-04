@@ -3,19 +3,30 @@ Place related functionality using SQLAlchemy
 """
 
 from src import db
+from sqlalchemy.orm import relationship
 from src.models.base import Base
 from src.models.city import City
 from src.models.user import User
-
+import uuid
 
 class Place(Base):
     __tablename__ = 'places'
 
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     name = db.Column(db.String(120), nullable=False)
-    city_id = db.Column(db.Integer, db.ForeignKey('cities.id'), nullable=False)
+    description = db.Column(db.String, nullable=True)
+    address = db.Column(db.String, nullable=True)
+    latitude = db.Column(db.Float, nullable=True)
+    longitude = db.Column(db.Float, nullable=True)
+    city_id = db.Column(db.String(36), db.ForeignKey('cities.id'), nullable=False)
+    host_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
+    price_per_night = db.Column(db.Integer, nullable=False, default=0)
+    number_of_rooms = db.Column(db.Integer, nullable=False, default=0)
+    number_of_bathrooms = db.Column(db.Integer, nullable=False, default=0)
+    max_guests = db.Column(db.Integer, nullable=False, default=0)
 
-    city = db.relationship('City', backref='places')
+    city = relationship('City', back_populates='places')
+    host = relationship('User', back_populates='places')
 
     def __init__(self, data: dict = None, **kwargs):
         """Initialize a place"""
@@ -57,6 +68,16 @@ class Place(Base):
         }
 
     @staticmethod
+    def get_all() -> list["Place"]:
+        """Get all places"""
+        return Place.query.all()
+
+    @staticmethod
+    def get(place_id: str) -> "Place | None":
+        """Get a place by its id"""
+        return Place.query.get(place_id)
+
+    @staticmethod
     def create(data: dict) -> "Place":
         """Create a new place"""
         user = User.query.get(data["host_id"])
@@ -70,7 +91,6 @@ class Place(Base):
         new_place = Place(data=data)
         db.session.add(new_place)
         db.session.commit()
-
         return new_place
 
     @staticmethod
@@ -85,3 +105,14 @@ class Place(Base):
 
         db.session.commit()
         return place
+
+    @staticmethod
+    def delete(place_id: str) -> bool:
+        """Delete a place by its id"""
+        place = Place.get(place_id)
+        if not place:
+            return False
+
+        db.session.delete(place)
+        db.session.commit()
+        return True

@@ -1,35 +1,25 @@
 """ Abstract base class for all models """
 
 from datetime import datetime
+from typing import Any,Optional
 import uuid
-from sqlalchemy import create_engine
-from sqlalchemy.orm import scoped_session, sessionmaker
+from abc import abstractmethod
+import sqlalchemy as sa
+from sqlalchemy.sql import func
 from flask_sqlalchemy import SQLAlchemy
 
-# Initialisation de SQLAlchemy
 db = SQLAlchemy()
 
 # Configuration de la base de données
 # Remplacez par votre URL de base de données
 DATABASE_URL = "sqlite:///hbnb_dev.db"
 
-engine = create_engine(DATABASE_URL)
-db_session = scoped_session(sessionmaker(bind=engine))
-
 
 class Base(db.Model):
     __abstract__ = True
-    id = db.Column(db.String(36), primary_key=True, default=str(uuid.uuid4()))
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(
-        db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-
-    def to_dict(self):
-        return {
-            "id": self.id,
-            "created_at": self.created_at.isoformat(),
-            "updated_at": self.updated_at.isoformat(),
-        }
+    id = sa.Column(sa.String(36), primary_key=True)
+    created_at = sa.Column(sa.DateTime, default=func.now())
+    updated_at = sa.Column(sa.DateTime, default=func.now())
 
     @classmethod
     def get(cls, id):
