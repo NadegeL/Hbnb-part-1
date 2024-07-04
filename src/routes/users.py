@@ -1,4 +1,8 @@
+<<<<<<< Updated upstream
 # src/routes/users.py
+=======
+#src/routes/users.py
+>>>>>>> Stashed changes
 """
 This module contains the routes for the users endpoints.
 """
