@@ -1,5 +1,5 @@
 """
-City related functionality
+City related functionality, path: Hbnb-part-1/solutions/solution-00/src/models/city.py
 """
 
 from src.models.base import Base
