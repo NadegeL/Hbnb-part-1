@@ -5,6 +5,7 @@ from flask_bcrypt import Bcrypt
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 from src.models.user import User
 from src.persistence.db import db
+from src.repositories.sqlite_repository import SQLiteRepository
 
 app_bp = Blueprint('app', __name__)
 bcrypt = Bcrypt()

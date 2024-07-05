@@ -1,25 +1,29 @@
 #src/routes/countries.py
 """
-This module contains the routes for the countries endpoint
+This module contains the routes for the countries endpoints.
 """
 
 from flask import Blueprint
+from flask_jwt_extended import jwt_required
 from src.controllers.countries import (
-    get_countries,
+    get_all_countries,
     get_country_by_code,
-    get_country_cities,
+    create_country,
 )
 
 countries_bp = Blueprint("countries", __name__, url_prefix="/countries")
 
 @countries_bp.route("/", methods=["GET"])
-def get_all_countries():
-    return get_countries()
+@jwt_required()
+def get_all():
+    return get_all_countries()
 
 @countries_bp.route("/<code>", methods=["GET"])
-def get_specific_country(code):
+@jwt_required()
+def get_country(code):
     return get_country_by_code(code)
 
-@countries_bp.route("/<code>/cities", methods=["GET"])
-def get_cities_of_country(code):
-    return get_country_cities(code)
+@countries_bp.route("/", methods=["POST"])
+@jwt_required()
+def add_country():
+    return create_country()

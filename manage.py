@@ -1,17 +1,24 @@
-#src/ manage.py
+# src/manage.py
+
 """ Entry point for the application. """
 
 from flask_migrate import Migrate
-from src.create_app import create_app
-from src.persistence.db import db
+from src.__init__ import create_app
+from flask.cli import FlaskGroup
+
+cli = FlaskGroup(create_app=create_app)
 
 app = create_app()
-migrate = Migrate(app, db)
+migrate = Migrate(app)
 
 @cli.command("create_db")
 def create_db():
-    db.create_all()
-    print("Base de données créée avec succès!")
+    with app.app_context():
+        from src.persistence.sqlite_repository import SQLiteRepository
+        db_path = 'database.db'
+        repository = SQLiteRepository(db_path)
+        repository.create_tables()
+        print("Database created successfully!")
 
 if __name__ == "__main__":
     cli()

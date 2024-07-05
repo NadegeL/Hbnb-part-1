@@ -1,17 +1,21 @@
+# utils/populate.py
+
 """ Populate the database with some data at the start of the application"""
 
-from src.persistence.repository import Repository
-
-
-def populate_db(repo: Repository) -> None:
-    """Populates the db with a dummy country"""
+def populate_db(repository):
     from src.models.country import Country
+    from src.models.user import User
+    from src.models.amenity import Amenity
+    from src.models.city import City
+    from src.models.review import Review
+    from src.models.place import Place
+    from src.models.placeamenity import PlaceAmenity
 
-    countries = [
-        Country(name="Uruguay", code="UY"),
-    ]
+    # Example: Add countries to the repository
+    country1 = Country(name="Country1")
+    country2 = Country(name="Country2")
 
-    for country in countries:
-        repo.save(country)
+    repository.save(country1)
+    repository.save(country2)
 
-    print("Memory DB populated")
+    # Add similar logic for other models if necessary

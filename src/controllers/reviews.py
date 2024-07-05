@@ -4,6 +4,7 @@ Reviews controller module
 
 from flask import abort, request
 from src.models.review import Review
+from src.repositories.sqlite_repository import SQLiteRepository
 
 
 def get_reviews():

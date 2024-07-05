@@ -1,19 +1,15 @@
 # src/models/amenity.py
 
-from sqlalchemy import Column, String, Boolean, DateTime
+from src.app import db
 from datetime import datetime
-from typing import Union, List  # Import Union and List
-from src.persistence.db import db
+from typing import Union, List
 
 class Amenity(db.Model):
-    """Amenity representation"""
-    __tablename__ = 'amenities'
-
-    id = Column(String(36), primary_key=True)
-    name = Column(String(120), unique=True, nullable=False)
-    description = Column(String, nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, onupdate=datetime.utcnow)
+    id = db.Column(db.String(36), primary_key=True)
+    name = db.Column(db.String(120), unique=True, nullable=False)
+    description = db.Column(db.String, nullable=True)
+    created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
+    updated_at = db.Column(db.DateTime, default=db.func.current_timestamp(), onupdate=db.func.current_timestamp())
 
     def __init__(self, name: str, description: str = "", **kwargs):
         """Initialize the amenity"""
@@ -21,11 +17,11 @@ class Amenity(db.Model):
         self.name = name
         self.description = description
 
-    def __repr__(self) -> str:
+    def __repr__(self):
         """String representation of the Amenity"""
         return f"<Amenity {self.id} ({self.name})>"
 
-    def to_dict(self) -> dict:
+    def to_dict(self):
         """Dictionary representation of the object"""
         return {
             "id": self.id,
@@ -36,22 +32,20 @@ class Amenity(db.Model):
         }
 
     @staticmethod
-    def create(amenity: dict) -> "Amenity":
+    def create(data: dict) -> "Amenity":
         """Create a new amenity"""
-        amenities: List["Amenity"] = Amenity.get_all()
-
-        for a in amenities:
-            if a.name == data["name"]:
-                raise ValueError("Amenity already exists")
+        if Amenity.query.filter_by(name=data["name"]).first():
+            raise ValueError("Amenity already exists")
 
         new_amenity = Amenity(**data)
-        repo.save(new_amenity)
+        db.session.add(new_amenity)
+        db.session.commit()
         return new_amenity
 
     @staticmethod
     def update(amenity_id: str, data: dict) -> Union["Amenity", None]:
         """Update an existing amenity"""
-        amenity: Union["Amenity", None] = Amenity.get(amenity_id)
+        amenity = Amenity.query.get(amenity_id)
 
         if not amenity:
             return None
@@ -61,19 +55,20 @@ class Amenity(db.Model):
         if "description" in data:
             amenity.description = data["description"]
 
-        repo.update(amenity)
+        db.session.commit()
         return amenity
 
     @staticmethod
     def get_all() -> List["Amenity"]:
-        from src.persistence import repo
-        return repo.get_all("amenity")
+        """Get all amenities"""
+        return Amenity.query.all()
 
     @staticmethod
     def delete(amenity_id: str) -> bool:
-        from src.persistence import repo
-        amenity = Amenity.get(amenity_id)
+        """Delete an amenity by ID"""
+        amenity = Amenity.query.get(amenity_id)
         if amenity:
-            repo.delete(amenity)
+            db.session.delete(amenity)
+            db.session.commit()
             return True
         return False

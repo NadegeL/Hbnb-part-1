@@ -15,7 +15,6 @@ migrate = Migrate()
 jwt = JWTManager()
 bcrypt = Bcrypt()
 
-
 def create_app(config_class="src.config.DevelopmentConfig") -> Flask:
     """
     Create a Flask app with the given configuration class.
@@ -32,11 +31,15 @@ def create_app(config_class="src.config.DevelopmentConfig") -> Flask:
     register_handlers(app)
 
     with app.app_context():
+        db.init_app(app)  # Initialize SQLAlchemy with the app context
+        migrate.init_app(app, db)
+
+        # Create all tables if not exist
         db.create_all()
-        print("Base de données vérifiée/créée avec succès!")
+
+        print("Database checked/created successfully!")
 
     return app
-
 
 def register_extensions(app: Flask) -> None:
     """Register the extensions for the Flask app"""
@@ -46,11 +49,8 @@ def register_extensions(app: Flask) -> None:
     jwt.init_app(app)
     bcrypt.init_app(app)
 
-
 def register_routes(app: Flask) -> None:
     """Import and register the routes for the Flask app"""
-
-    # Import the routes here to avoid circular imports
     from src.routes.users import users_bp
     from src.routes.countries import countries_bp
     from src.routes.cities import cities_bp
@@ -58,14 +58,12 @@ def register_routes(app: Flask) -> None:
     from src.routes.amenities import amenities_bp
     from src.routes.reviews import reviews_bp
 
-    # Register the blueprints in the app
     app.register_blueprint(users_bp)
     app.register_blueprint(countries_bp)
     app.register_blueprint(cities_bp)
     app.register_blueprint(places_bp)
     app.register_blueprint(reviews_bp)
     app.register_blueprint(amenities_bp)
-
 
 def register_handlers(app: Flask) -> None:
     """Register the error handlers for the Flask app."""

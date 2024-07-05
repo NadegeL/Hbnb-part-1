@@ -1,39 +1,34 @@
-<<<<<<< Updated upstream
 # src/routes/users.py
-=======
-#src/routes/users.py
->>>>>>> Stashed changes
-"""
-This module contains the routes for the users endpoints.
-"""
 
-from flask import Blueprint
+from flask import Blueprint, request, jsonify
 from src.controllers.users import (
-    create_user,
-    delete_user,
+    get_all_users,
     get_user_by_id,
-    get_users,
+    create_user,
     update_user,
+    delete_user
 )
 
-users_bp = Blueprint("users", __name__, url_prefix="/users")
+users_bp = Blueprint('users', __name__, url_prefix='/api/users')
 
-@users_bp.route("/", methods=["GET"])
-def get_all_users():
-    return get_users()
+@users_bp.route('/', methods=['GET'])
+def get_users():
+    return jsonify(get_all_users())
 
-@users_bp.route("/", methods=["POST"])
-def add_new_user():
-    return create_user()
+@users_bp.route('/<user_id>', methods=['GET'])
+def get_user(user_id):
+    return jsonify(get_user_by_id(user_id))
 
-@users_bp.route("/<user_id>", methods=["GET"])
-def get_specific_user(user_id):
-    return get_user_by_id(user_id)
+@users_bp.route('/', methods=['POST'])
+def add_user():
+    data = request.get_json()
+    return jsonify(create_user(data))
 
-@users_bp.route("/<user_id>", methods=["PUT"])
-def update_specific_user(user_id):
-    return update_user(user_id)
+@users_bp.route('/<user_id>', methods=['PUT'])
+def edit_user(user_id):
+    data = request.get_json()
+    return jsonify(update_user(user_id, data))
 
-@users_bp.route("/<user_id>", methods=["DELETE"])
-def delete_specific_user(user_id):
-    return delete_user(user_id)
+@users_bp.route('/<user_id>', methods=['DELETE'])
+def remove_user(user_id):
+    return jsonify(delete_user(user_id))

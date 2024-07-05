@@ -1,4 +1,4 @@
-#src/models/users.py
+# src/models/user.py
 from sqlalchemy import Column, String, Boolean, DateTime, func
 from datetime import datetime
 from src.persistence.db import db
@@ -8,14 +8,14 @@ class User(db.Model):
     """User representation"""
     __tablename__ = 'users'
 
-    id = db.Column(String(36), primary_key=True)
-    email = db.Column(String(120), unique=True, nullable=False)
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(String(128), nullable=False)
-    first_name = db.Column(String, nullable=False)
-    last_name = db.Column(String, nullable=False)
-    is_admin = db.Column(Boolean, default=False)
-    created_at = db.Column(DateTime, default=func.current_timestamp())
-    updated_at = db.Column(DateTime, onupdate=func.current_timestamp())
+    first_name = db.Column(db.String, nullable=False)
+    last_name = db.Column(db.String, nullable=False)
+    is_admin = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     def __init__(self, email: str, first_name: str, last_name: str, password: str, **kwargs):
         """Initialize the user"""
@@ -23,7 +23,15 @@ class User(db.Model):
         self.email = email
         self.first_name = first_name
         self.last_name = last_name
-        self.password_hash = generate_password_hash(password).decode('utf8')
+        self.set_password(password)
+
+    def set_password(self, password):
+        """Hash and set the password"""
+        self.password_hash = generate_password_hash(password).decode('utf-8')
+
+    def check_password(self, password):
+        """Check the hashed password"""
+        return check_password_hash(self.password_hash, password)
 
     def __repr__(self) -> str:
         """String representation of the User"""
@@ -62,7 +70,7 @@ class User(db.Model):
         if "last_name" in data:
             user.last_name = data["last_name"]
         if "password" in data:
-            user.password_hash = generate_password_hash(data["password"]).decode('utf8')
+            user.set_password(data["password"])
 
         db.session.commit()
         return user

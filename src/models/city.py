@@ -1,67 +1,64 @@
-"""
-City related functionality
-"""
+from sqlalchemy import Column, String, Integer, ForeignKey
+from sqlalchemy.orm import relationship
+from src.models.base import Base, MyBaseMixin
+from src.persistence.sqlite import SQLiteRepository  # Adjust the import path if necessary
 
-from src.models.base import Base
-from src.models.country import Country
+class City(Base, MyBaseMixin):
+    name = Column(String(128), nullable=False)
+    state_id = Column(String(36), ForeignKey('states.id'), nullable=False)
+    places = relationship('Place', backref='city', lazy=True)
 
+    def __repr__(self):
+        """String representation of the City"""
+        return f"<City {self.name} ({self.state_id})>"
 
-class City(Base):
-    """City representation"""
-
-    name: str
-    country_code: str
-
-    def __init__(self, name: str, country_code: str, **kw) -> None:
-        """Dummy init"""
-        super().__init__(**kw)
-
-        self.name = name
-        self.country_code = country_code
-
-    def __repr__(self) -> str:
-        """Dummy repr"""
-        return f"<City {self.id} ({self.name})>"
-
-    def to_dict(self) -> dict:
-        """Dictionary representation of the object"""
+    def to_dict(self):
+        """Returns the dictionary representation of the city"""
         return {
             "id": self.id,
             "name": self.name,
-            "country_code": self.country_code,
+            "state_id": self.state_id,
             "created_at": self.created_at.isoformat(),
-            "updated_at": self.updated_at.isoformat(),
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
         }
 
     @staticmethod
     def create(data: dict) -> "City":
         """Create a new city"""
-        from src.persistence import repo
+        new_city = City(**data)
+        db.session.add(new_city)
+        db.session.commit()
+        return new_city
 
-        country = Country.get(data["country_code"])
+    @staticmethod
+    def update(city_id: str, data: dict) -> "City | None":
+        """Update an existing city"""
+        city = City.get(city_id)
+        if not city:
+            return None
 
-        if not country:
-            raise ValueError("Country not found")
+        if "name" in data:
+            city.name = data["name"]
+        if "state_id" in data:
+            city.state_id = data["state_id"]
 
-        city = City(**data)
-
-        repo.save(city)
-
+        db.session.commit()
         return city
 
     @staticmethod
-    def update(city_id: str, data: dict) -> "City":
-        """Update an existing city"""
-        from src.persistence import repo
+    def get_all() -> list["City"]:
+        """Get all cities"""
+        return City.query.all()
 
+    @staticmethod
+    def delete(city_id: str) -> bool:
+        """Delete a city by ID"""
         city = City.get(city_id)
+        if city:
+            db.session.delete(city)
+            db.session.commit()
+            return True
+        return False
 
-        if not city:
-            raise ValueError("City not found")
-
-        for key, value in data.items():
-            setattr(city, key, value)
-
-        repo.update(city)
-
-        return city
+# Assuming that db is imported correctly from your db.py file
+from src.persistence.db import db

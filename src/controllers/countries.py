@@ -5,6 +5,7 @@ Countries controller module
 from flask import abort
 from src.models.city import City
 from src.models.country import Country
+from src.repositories.sqlite_repository import SQLiteRepository
 
 
 def get_countries():
