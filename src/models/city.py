@@ -1,19 +1,21 @@
-from sqlalchemy import Column, String, Integer, ForeignKey
+#src/models/city.py
+from sqlalchemy import Column, String, ForeignKey
 from sqlalchemy.orm import relationship
+from src.persistence.db import db
 from src.models.base import Base, MyBaseMixin
-from src.persistence.sqlite import SQLiteRepository  # Adjust the import path if necessary
+from src.models.state import State  # Ensure this import is here
 
 class City(Base, MyBaseMixin):
+    __tablename__ = 'cities'
+
     name = Column(String(128), nullable=False)
     state_id = Column(String(36), ForeignKey('states.id'), nullable=False)
     places = relationship('Place', backref='city', lazy=True)
 
     def __repr__(self):
-        """String representation of the City"""
         return f"<City {self.name} ({self.state_id})>"
 
     def to_dict(self):
-        """Returns the dictionary representation of the city"""
         return {
             "id": self.id,
             "name": self.name,
@@ -24,7 +26,6 @@ class City(Base, MyBaseMixin):
 
     @staticmethod
     def create(data: dict) -> "City":
-        """Create a new city"""
         new_city = City(**data)
         db.session.add(new_city)
         db.session.commit()
@@ -32,7 +33,6 @@ class City(Base, MyBaseMixin):
 
     @staticmethod
     def update(city_id: str, data: dict) -> "City | None":
-        """Update an existing city"""
         city = City.get(city_id)
         if not city:
             return None
@@ -47,18 +47,13 @@ class City(Base, MyBaseMixin):
 
     @staticmethod
     def get_all() -> list["City"]:
-        """Get all cities"""
         return City.query.all()
 
     @staticmethod
     def delete(city_id: str) -> bool:
-        """Delete a city by ID"""
         city = City.get(city_id)
         if city:
             db.session.delete(city)
             db.session.commit()
             return True
         return False
-
-# Assuming that db is imported correctly from your db.py file
-from src.persistence.db import db

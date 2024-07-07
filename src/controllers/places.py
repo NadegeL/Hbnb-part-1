@@ -4,7 +4,7 @@ Places controller module
 
 from flask import abort, request
 from src.models.place import Place
-from src.repositories.sqlite_repository import SQLiteRepository
+from src.persistence.sqlite_repository import SQLiteRepository
 
 def get_places():
     """Returns all places"""

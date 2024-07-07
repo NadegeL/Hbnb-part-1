@@ -1,10 +1,8 @@
 # src/persistence/memory.py
-
 from datetime import datetime
 from typing import Type
-from src.models.base import Base
 from src.persistence.repository import Repository
-from utils.populate import populate_db
+from src.models.base import Base
 
 class MemoryRepository(Repository):
     _data: dict[str, list] = {
@@ -19,7 +17,6 @@ class MemoryRepository(Repository):
 
     def __init__(self) -> None:
         super().__init__()
-        self.reload()
 
     def get_all(self, model: Type[Base]) -> list[Base]:
         model_name = model.__name__.lower()
@@ -33,20 +30,24 @@ class MemoryRepository(Repository):
         return None
 
     def reload(self) -> None:
-        populate_db()  # Adjusted to not pass self unless necessary.
+        # Ensure populate_db is called within an app context
+        from utils.populate import populate_db
+        with app.app_context():
+            populate_db()
 
     def save(self, obj: Base) -> Base:
         model_name = obj.__class__.__name__.lower()
-        self._data[model_name].append(obj)
+        if obj not in self._data[model_name]:
+            self._data[model_name].append(obj)
         return obj
 
     def update(self, obj: Base) -> Base | None:
         model_name = obj.__class__.__name__.lower()
         for i, o in enumerate(self._data[model_name]):
             if o.id == obj.id:
-                o.updated_at = datetime.now()  # Ensure all attributes are properly copied or updated.
-                self._data[model_name][i] = o
-                return o
+                obj.updated_at = datetime.now()
+                self._data[model_name][i] = obj
+                return obj
         return None
 
     def delete(self, obj: Base) -> bool:

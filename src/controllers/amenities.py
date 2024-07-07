@@ -1,6 +1,6 @@
 from flask import Blueprint, abort, request
 from src.models.amenity import Amenity
-from src.repositories.sqlite_repository import SQLiteRepository
+from src.persistence.sqlite_repository import SQLiteRepository
 
 amenities_bp = Blueprint('amenities', __name__)
 

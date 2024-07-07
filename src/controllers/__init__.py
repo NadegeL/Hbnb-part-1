@@ -5,8 +5,7 @@ from src.routes.users import users_bp  # Assuming users_bp is defined in routes/
 from flask import Flask
 import os
 from dotenv import load_dotenv
-from src.repositories.sqlite_repository import SQLiteRepository
-
+from src.persistence.sqlite_repository import SQLiteRepository
 
 def create_app(config_name):
     app = Flask(__name__)

@@ -1,5 +1,4 @@
 # src/models/base.py
-from sqlalchemy.ext.declarative import declared_attr
 from datetime import datetime
 import uuid
 from src.persistence.db import db  # Ensure this is Flask-SQLAlchemy instance
@@ -9,10 +8,6 @@ class MyBaseMixin:
     id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-
-    @declared_attr
-    def __tablename__(cls) -> str:
-        return cls.__name__.lower() + 's'
 
     def to_dict(self) -> dict:
         return {

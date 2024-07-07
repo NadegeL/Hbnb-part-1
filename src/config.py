@@ -13,9 +13,9 @@ from dotenv import load_dotenv
 load_dotenv()  # Load environment variables from a .env file if present
 
 class Config:
-    SECRET_KEY = os.environ.get('SECRET_KEY') or 'supersecretkey'
+    SECRET_KEY = os.environ.get('SECRET_KEY', 'supersecretkey')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY') or 'anothersecretkey'
+    JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY', 'anothersecretkey')
     USE_DATABASE = True  # Default to using a database; change as needed
 
 class DevelopmentConfig(Config):

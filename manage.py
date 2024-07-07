@@ -1,9 +1,6 @@
-# src/manage.py
-
-""" Entry point for the application. """
-
+# manage.py
 from flask_migrate import Migrate
-from src.__init__ import create_app
+from src.create_app import create_app
 from flask.cli import FlaskGroup
 
 cli = FlaskGroup(create_app=create_app)
@@ -18,7 +15,9 @@ def create_db():
         db_path = 'database.db'
         repository = SQLiteRepository(db_path)
         repository.create_tables()
-        print("Database created successfully!")
+        from utils.populate import populate_db
+        populate_db()
+        print("Database created and populated successfully!")
 
 if __name__ == "__main__":
     cli()

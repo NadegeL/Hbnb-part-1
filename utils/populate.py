@@ -7,12 +7,11 @@ from src.models.city import City
 from src.models.review import Review
 from src.models.place import Place
 from src.models.placeamenity import PlaceAmenity
-from src.database import db  # Ensure db is imported if needed for context
+from src.persistence.db import db  # Ensure db is imported correctly
 
 def populate_db():
     logging.basicConfig(level=logging.INFO)
     with db.session.begin():
-        # Populate countries if none exist
         if not Country.query.first():
             countries = [
                 {"name": "USA", "code": "US"},
@@ -43,4 +42,3 @@ def populate_db():
 
         db.session.commit()
         logging.info("Database populated successfully!")
-
