@@ -1,22 +1,19 @@
 # src/models/country.py
 
 from sqlalchemy import Column, String
-from sqlalchemy.orm import relationship
-from src.models.base import Base, MyBaseMixin
 from src.persistence.db import db
+from src.models.base import MyBaseMixin
+from typing import Optional, List
 
-class Country(Base, MyBaseMixin):
+class Country(db.Model, MyBaseMixin):
+    __tablename__ = 'countries'
     name = Column(String(128), nullable=False)
-    name = db.Column(db.String(120), unique=True, nullable=False)
-    code = db.Column(db.String(3), unique=True, nullable=False)
-    cities = db.relationship('City', backref='country', lazy=True)
+    code = Column(String(3), unique=True, nullable=False)
 
     def __repr__(self):
-        """String representation of the Country"""
         return f"<Country {self.code} ({self.name})>"
 
     def to_dict(self):
-        """Returns the dictionary representation of the country"""
         return {
             "id": self.id,
             "name": self.name,
@@ -27,38 +24,31 @@ class Country(Base, MyBaseMixin):
 
     @staticmethod
     def create(data: dict) -> "Country":
-        """Create a new country"""
         if Country.query.filter_by(code=data["code"]).first():
             raise ValueError("Country code already exists")
-
         new_country = Country(**data)
         db.session.add(new_country)
         db.session.commit()
         return new_country
 
     @staticmethod
-    def update(country_id: str, data: dict) -> "Country | None":
-        """Update an existing country"""
+    def update(country_id: str, data: dict) -> Optional["Country"]:
         country = Country.get(country_id)
         if not country:
             return None
-
         if "name" in data:
             country.name = data["name"]
         if "code" in data:
             country.code = data["code"]
-
         db.session.commit()
         return country
 
     @staticmethod
-    def get_all() -> list["Country"]:
-        """Get all countries"""
+    def get_all() -> List["Country"]:
         return Country.query.all()
 
     @staticmethod
     def delete(country_id: str) -> bool:
-        """Delete a country by ID"""
         country = Country.get(country_id)
         if country:
             db.session.delete(country)

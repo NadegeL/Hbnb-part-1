@@ -1,6 +1,6 @@
 # src/models/amenity.py
 
-from src.app import db
+from src.persistence.db import db
 from datetime import datetime
 from typing import Union, List
 

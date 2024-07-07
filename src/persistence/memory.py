@@ -2,8 +2,8 @@
 
 from datetime import datetime
 from typing import Type
-from src.persistence.repository import Repository
 from src.models.base import Base
+from src.persistence.repository import Repository
 from utils.populate import populate_db
 
 class MemoryRepository(Repository):
@@ -33,21 +33,20 @@ class MemoryRepository(Repository):
         return None
 
     def reload(self) -> None:
-        populate_db(self)
+        populate_db()  # Adjusted to not pass self unless necessary.
 
     def save(self, obj: Base) -> Base:
         model_name = obj.__class__.__name__.lower()
-        if obj not in self._data[model_name]:
-            self._data[model_name].append(obj)
+        self._data[model_name].append(obj)
         return obj
 
     def update(self, obj: Base) -> Base | None:
         model_name = obj.__class__.__name__.lower()
         for i, o in enumerate(self._data[model_name]):
             if o.id == obj.id:
-                obj.updated_at = datetime.now()
-                self._data[model_name][i] = obj
-                return obj
+                o.updated_at = datetime.now()  # Ensure all attributes are properly copied or updated.
+                self._data[model_name][i] = o
+                return o
         return None
 
     def delete(self, obj: Base) -> bool:

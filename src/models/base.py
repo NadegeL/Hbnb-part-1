@@ -1,24 +1,28 @@
+# src/models/base.py
+from sqlalchemy.ext.declarative import declared_attr
 from datetime import datetime
-from typing import Any, List, Optional
-from sqlalchemy.ext.declarative import as_declarative, declared_attr
-from sqlalchemy import Column, String, DateTime
 import uuid
-from src.persistence.db import db
-
-@as_declarative()
-class Base:
-    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+from src.persistence.db import db  # Ensure this is Flask-SQLAlchemy instance
+from typing import Any, List, Optional
 
 class MyBaseMixin:
+    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
     @declared_attr
     def __tablename__(cls) -> str:
         return cls.__name__.lower() + 's'
 
-    def __init__(self, **kwargs) -> None:
-        for key, value in kwargs.items():
-            setattr(self, key, value)
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "created_at": self.created_at.isoformat(),
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
+        }
+
+class Base(db.Model, MyBaseMixin):
+    __abstract__ = True  # This ensures that Base itself isn't created as a table
 
     @classmethod
     def get(cls, id: str) -> Optional["Any"]:
@@ -37,17 +41,19 @@ class MyBaseMixin:
         db.session.commit()
         return True
 
-    def to_dict(self) -> dict:
-        return {
-            "id": self.id,
-            "created_at": self.created_at.isoformat(),
-            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
-        }
-
     @staticmethod
     def create(data: dict) -> Any:
-        raise NotImplementedError("create method not implemented")
+        instance = cls(**data)
+        db.session.add(instance)
+        db.session.commit()
+        return instance
 
     @staticmethod
     def update(entity_id: str, data: dict) -> Optional[Any]:
-        raise NotImplementedError("update method not implemented")
+        instance = cls.query.get(entity_id)
+        if instance:
+            for key, value in data.items():
+                setattr(instance, key, value)
+            db.session.commit()
+            return instance
+        return None

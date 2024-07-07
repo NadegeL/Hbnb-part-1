@@ -1,6 +1,3 @@
-# src/__init__.py
-""" Initialize the Flask app. """
-
 from flask import Flask
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
@@ -9,67 +6,34 @@ from flask_jwt_extended import JWTManager
 from flask_bcrypt import Bcrypt
 import os
 
-cors = CORS()
+# Initialize Flask extensions globally
 db = SQLAlchemy()
+cors = CORS()
 migrate = Migrate()
 jwt = JWTManager()
 bcrypt = Bcrypt()
 
-def create_app(config_class="src.config.DevelopmentConfig") -> Flask:
-    """
-    Create a Flask app with the given configuration class.
-    The default configuration class is DevelopmentConfig.
-    """
+def create_app(config_class="src.config.DevelopmentConfig"):
     app = Flask(__name__)
-    app.url_map.strict_slashes = False
-
     app.config.from_object(config_class)
-    app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY', 'super-strong-secret-key')
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('SQLALCHEMY_DATABASE_URI', 'sqlite:///hbnb-dev.db')
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY', 'your-secret-key')
 
-    register_extensions(app)
-    register_routes(app)
-    register_handlers(app)
-
-    with app.app_context():
-        db.init_app(app)  # Initialize SQLAlchemy with the app context
-        migrate.init_app(app, db)
-
-        # Create all tables if not exist
-        db.create_all()
-
-        print("Database checked/created successfully!")
-
-    return app
-
-def register_extensions(app: Flask) -> None:
-    """Register the extensions for the Flask app"""
-    cors.init_app(app, resources={r"/api/*": {"origins": "*"}})
+    # Initialize app with all extensions
     db.init_app(app)
+    cors.init_app(app, resources={r"/api/*": {"origins": "*"}})
     migrate.init_app(app, db)
     jwt.init_app(app)
     bcrypt.init_app(app)
 
-def register_routes(app: Flask) -> None:
-    """Import and register the routes for the Flask app"""
-    from src.routes.users import users_bp
-    from src.routes.countries import countries_bp
-    from src.routes.cities import cities_bp
-    from src.routes.places import places_bp
-    from src.routes.amenities import amenities_bp
-    from src.routes.reviews import reviews_bp
+    from src.routes import register_routes
+    register_routes(app)
 
-    app.register_blueprint(users_bp)
-    app.register_blueprint(countries_bp)
-    app.register_blueprint(cities_bp)
-    app.register_blueprint(places_bp)
-    app.register_blueprint(reviews_bp)
-    app.register_blueprint(amenities_bp)
+    with app.app_context():
+        db.create_all()  # Creates all database tables if they don't exist
+        from utils.populate import populate_db
+        populate_db()  # Make sure this is called within the app context
 
-def register_handlers(app: Flask) -> None:
-    """Register the error handlers for the Flask app."""
-    app.errorhandler(404)(lambda e: (
-        {"error": "Not found", "message": str(e)}, 404
-    ))
-    app.errorhandler(400)(lambda e: (
-        {"error": "Bad request", "message": str(e)}, 400
-    ))
+    print("Database checked/created successfully!")
+    return app
