@@ -9,6 +9,7 @@ This project is part of the Holberton BnB (HBnB) series, aiming to create a comp
 The following UML diagram represents the structure of the project:
 
 ![HBNB Part 2 UML](images/HBNB_Part2_UML.png)
+![HBNB Part 2 UML](images/Links.jpg)
 
 ## Directory Structure and File Descriptions
 
