@@ -114,10 +114,10 @@ Hbnb-part-2/
 └── docker-compose.yml
 
 Authors:
-Benjamin Jacob** (https://github.com/)
-Jérôme Romand** (https://github.com/jeje-digifab)
-Nadège Luthier** (https://github.com/)
-Néia Santos Nascimento** (https://github.com/Neia2)
+**Benjamin Jacob** (https://github.com/gofastpanam)
+**Jérôme Romand** (https://github.com/jeje-digifab)
+**Nadège Luthier** (https://github.com/NadegeL)
+**Néia Santos Nascimento** (https://github.com/Neia2)
 
 License
 This project is licensed under the MIT License. See the LICENSE file for more details.

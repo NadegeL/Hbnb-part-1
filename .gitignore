@@ -2,3 +2,4 @@ __pycache__
 .editorconfig
 *.db
 venv__pycache__/
+venv
